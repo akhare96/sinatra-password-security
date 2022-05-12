@@ -17,7 +17,13 @@ class ApplicationController < Sinatra::Base
 	end
 
 	post "/signup" do
-		#your code here!
+		user = User.new(:username => params[:username], :password => params[:password])
+		#because of has_secure_password, not able to save to DB unless user filled out password.  Calling user.save will return false if user can't be persisted.
+		if user.save
+			redirect "/login"
+		else
+			redirect "/failure"
+		end
 	end
 
 	get "/login" do
@@ -25,7 +31,18 @@ class ApplicationController < Sinatra::Base
 	end
 
 	post "/login" do
-		#your code here!
+		user = User.find_by(:username => params[:username])
+		#authenticate method added invisibly to class User by calling has_secure_password
+		#takes string as an arguement
+		#turns string in salted, hashed version
+		#compares that to what is stored in DB
+		#if match, return user instance otherwise false
+		if user && user.authenticate(params[:password])
+			session[:user_id] = user.id
+			redirect "/success"
+		else
+			redirect "/failure"
+		end
 	end
 
 	get "/success" do
